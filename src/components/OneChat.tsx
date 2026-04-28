@@ -66,14 +66,8 @@ const ScrollReveal = ({
 
 const BrandMark = ({ compact = false }: { compact?: boolean }) => (
   <div className="flex items-center gap-2">
-    <div className={cn(
-      'bg-gradient-to-br from-[#10b981] to-[#059669] rounded-xl flex items-center justify-center shadow-brand',
-      compact ? 'w-8 h-8' : 'w-10 h-10'
-    )}>
-      <MessageSquare className={cn(compact ? 'w-4 h-4' : 'w-5 h-5', 'text-white')} />
-    </div>
-    <span className={cn('font-bold tracking-tight text-primary', compact ? 'text-lg' : 'text-xl')}>
-      OneChat<span className="text-sky-300">.</span>
+    <span className={cn('font-bold tracking-tight text-primary', compact ? 'text-xl' : 'text-2xl')}>
+      One Chat<span className="text-blue-600">.</span>
     </span>
   </div>
 );
@@ -157,7 +151,7 @@ const Navbar = () => {
 
 const HeroImage = () => {
   return (
-    <div className="relative w-full aspect-square md:aspect-[4/3] lg:aspect-square max-w-[600px] mx-auto z-10 flex items-center justify-center perspective-[2000px]">
+    <div className="relative w-full aspect-square md:aspect-[4/3] lg:aspect-square max-w-[600px] mx-auto z-10 flex items-center justify-center perspective-[2000px] mt-8 lg:mt-0">
       {/* Decorative Background Elements */}
       <div className="absolute inset-0 bg-gradient-to-tr from-[#10b981]/20 to-transparent rounded-full blur-3xl opacity-50 animate-pulse-soft"></div>
       <div className="absolute top-1/4 -right-12 w-64 h-64 bg-[#6366f1]/10 rounded-full blur-3xl animate-float" style={{ animationDelay: '1s' }}></div>
@@ -170,97 +164,15 @@ const HeroImage = () => {
          </motion.div>
       </div>
 
-      {/* Main Dashboard Mockup */}
+      {/* Main Image */}
       <motion.div 
         initial={{ opacity: 0, x: 48, rotateY: -15, rotateX: 10 }}
         animate={{ opacity: 1, x: 0, rotateY: -10, rotateX: 5 }}
         transition={{ duration: 0.8, ease: "easeOut" }}
-        className="w-[90%] md:w-[110%] relative z-20 rounded-[28px] bg-white shadow-2xl overflow-hidden border border-border"
+        className="w-[95%] md:w-[105%] relative z-20 rounded-[28px] bg-white shadow-2xl overflow-hidden border border-border"
         style={{ transformStyle: 'preserve-3d' }}
       >
-        {/* Browser Header */}
-        <div className="h-10 bg-gray-50 border-b border-border flex items-center px-4 gap-2">
-          <div className="flex gap-1.5">
-            <div className="w-3 h-3 rounded-full bg-[#ef4444]"></div>
-            <div className="w-3 h-3 rounded-full bg-[#f59e0b]"></div>
-            <div className="w-3 h-3 rounded-full bg-[#10b981]"></div>
-          </div>
-          <div className="mx-auto h-6 w-1/2 bg-white rounded-md border border-border flex items-center justify-center">
-             <span className="text-[10px] text-muted-text flex items-center gap-1"><Zap className="w-3 h-3"/> onechat.app/inbox</span>
-          </div>
-        </div>
-        
-        {/* App Layout */}
-        <div className="flex h-[400px]">
-          {/* Sidebar */}
-          <div className="w-[60px] md:w-[220px] border-r border-border bg-gray-50 flex flex-col p-3">
-             <div className="hidden md:flex items-center gap-2 mb-6 px-2">
-                <BrandMark compact />
-             </div>
-             <div className="flex-1 flex flex-col gap-1">
-               {['Inbox', 'Team', 'Campaigns', 'Contacts'].map((item, i) => (
-                 <div key={item} className={cn("h-10 rounded-lg flex items-center gap-3 px-3", i===0 ? "bg-white shadow-sm text-[#10b981]" : "text-secondary")}>
-                   <div className="w-4 h-4 bg-current opacity-70 rounded-sm"></div>
-                   <span className="text-sm font-medium hidden md:block">{item}</span>
-                 </div>
-               ))}
-             </div>
-          </div>
-          {/* Main Content Area */}
-          <div className="flex-1 flex flex-col bg-white">
-             {/* Header */}
-             <div className="h-14 border-b border-border flex items-center justify-between px-6">
-                <span className="font-semibold text-sm">Shared Inbox</span>
-                <div className="flex items-center gap-2">
-                  <div className="relative">
-                    <Bell className="w-4 h-4 text-secondary" />
-                    <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-ping-slow"></div>
-                    <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></div>
-                  </div>
-                  <div className="w-8 h-8 rounded-full bg-gray-200 ml-2"></div>
-                </div>
-             </div>
-             {/* Chat List + Window */}
-             <div className="flex-1 flex overflow-hidden p-4 gap-4">
-               {/* Chat List */}
-               <div className="w-[180px] hidden lg:flex flex-col gap-2">
-                  {[1,2,3,4].map(i => (
-                    <div key={i} className="h-16 border border-border rounded-xl p-2 flex gap-2 items-center">
-                       <div className="w-10 h-10 rounded-full bg-gray-100 flex-shrink-0"></div>
-                       <div className="flex-1 space-y-1.5">
-                         <div className="h-3 w-3/4 bg-gray-200 rounded-sm"></div>
-                         <div className="h-2 w-full bg-gray-100 rounded-sm"></div>
-                       </div>
-                    </div>
-                  ))}
-               </div>
-               {/* Chat Window */}
-               <div className="flex-1 border border-border rounded-xl bg-[#f8fafc] flex flex-col overflow-hidden relative">
-                 <div className="h-12 border-b border-border bg-white flex items-center px-4 font-medium text-sm gap-2">
-                   <div className="w-2 h-2 rounded-full bg-[#10b981]"></div> Sarah (Support)
-                 </div>
-                 <div className="flex-1 p-4 flex flex-col gap-3 justify-end">
-                    <div className="self-start max-w-[80%] bg-white border border-border p-3 rounded-2xl rounded-tl-sm text-xs shadow-sm">
-                      Hi, I need help with my recent order.
-                    </div>
-                    {/* Animated Reply */}
-                    <motion.div 
-                      key="reply"
-                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      transition={{ delay: 1.5, duration: 0.4 }}
-                      className="self-end max-w-[80%] bg-[#10b981] text-white p-3 rounded-2xl rounded-tr-sm text-xs shadow-md"
-                    >
-                      Hello! I'd be happy to look into that for you. Could you please provide your order number?
-                    </motion.div>
-                 </div>
-                 <div className="h-12 bg-white border-t border-border m-2 rounded-lg flex items-center px-3">
-                    <div className="h-4 w-1/3 bg-gray-100 rounded"></div>
-                 </div>
-               </div>
-             </div>
-          </div>
-        </div>
+        <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1200&q=80" alt="One Chat Dashboard Clean" className="w-full h-auto object-cover" />
       </motion.div>
 
       {/* Floating Elements */}
@@ -326,7 +238,7 @@ const Hero = () => {
             
             <motion.h1 
               variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
-              className="text-5xl md:text-6xl lg:text-[64px] font-extrabold leading-[1.1] tracking-tight mb-6"
+              className="text-4xl sm:text-5xl md:text-6xl lg:text-[64px] font-extrabold leading-[1.1] tracking-tight mb-6"
             >
               One WhatsApp Number. <br />
               <span className="gradient-text-hero">Your Entire Team.</span>
