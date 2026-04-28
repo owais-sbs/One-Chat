@@ -1,65 +1,51 @@
 #!/usr/bin/env bun
+
 import { build, type BuildConfig } from "bun";
 import plugin from "bun-plugin-tailwind";
 import { existsSync } from "fs";
 import { rm } from "fs/promises";
 import path from "path";
 
-// Print help text if requested
+// HELP
 if (process.argv.includes("--help") || process.argv.includes("-h")) {
   console.log(`
-🏗️  Bun Build Script
+🏗️ Bun Build Script
 
-Usage: bun run build.ts [options]
-
-Common Options:
-  --outdir <path>          Output directory (default: "dist")
-  --minify                 Enable minification (or --minify.whitespace, --minify.syntax, etc)
-  --source-map <type>      Sourcemap type: none|linked|inline|external
-  --target <target>        Build target: browser|bun|node
-  --format <format>        Output format: esm|cjs|iife
-  --splitting              Enable code splitting
-  --packages <type>        Package handling: bundle|external
-  --public-path <path>     Public path for assets
-  --env <mode>             Environment handling: inline|disable|prefix*
-  --conditions <list>      Package.json export conditions (comma separated)
-  --external <list>        External packages (comma separated)
-  --banner <text>          Add banner text to output
-  --footer <text>          Add footer text to output
-  --define <obj>           Define global constants (e.g. --define.VERSION=1.0.0)
-  --help, -h               Show this help message
-
-Example:
-  bun run build.ts --outdir=dist --minify --source-map=linked --external=react,react-dom
+Usage:
+bun run build.ts
 `);
   process.exit(0);
 }
 
-// Helper function to convert kebab-case to camelCase
+// Convert kebab-case → camelCase
 const toCamelCase = (str: string): string => {
   return str.replace(/-([a-z])/g, g => g[1].toUpperCase());
 };
 
-// Helper function to parse a value into appropriate type
+// Parse values
 const parseValue = (value: string): any => {
   if (value === "true") return true;
   if (value === "false") return false;
 
   if (/^\d+$/.test(value)) return parseInt(value, 10);
+
   if (/^\d*\.\d+$/.test(value)) return parseFloat(value);
 
-  if (value.includes(",")) return value.split(",").map(v => v.trim());
+  if (value.includes(",")) {
+    return value.split(",").map(v => v.trim());
+  }
 
   return value;
 };
 
-// Magical argument parser that converts CLI args to BuildConfig
+// Parse CLI args
 function parseArgs(): Partial<BuildConfig> {
   const config: Record<string, any> = {};
   const args = process.argv.slice(2);
 
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
+
     if (!arg.startsWith("--")) continue;
 
     if (arg.startsWith("--no-")) {
@@ -101,9 +87,10 @@ function parseArgs(): Partial<BuildConfig> {
   return config as Partial<BuildConfig>;
 }
 
-// Helper function to format file sizes
+// Format size
 const formatFileSize = (bytes: number): string => {
   const units = ["B", "KB", "MB", "GB"];
+
   let size = bytes;
   let unitIndex = 0;
 
@@ -115,50 +102,82 @@ const formatFileSize = (bytes: number): string => {
   return `${size.toFixed(2)} ${units[unitIndex]}`;
 };
 
-console.log("\n🚀 Starting build process...\n");
+console.log("\n🚀 Starting production build...\n");
 
-// Parse CLI arguments
+// Parse args
 const cliConfig = parseArgs();
-const outdir = cliConfig.outdir || path.join(process.cwd(), "dist");
 
+// Output folder
+const outdir =
+  typeof cliConfig.outdir === "string"
+    ? cliConfig.outdir
+    : path.join(process.cwd(), "dist");
+
+// Remove old build
 if (existsSync(outdir)) {
   console.log(`🗑️ Cleaning previous build at ${outdir}`);
-  await rm(outdir, { recursive: true, force: true });
+
+  await rm(outdir, {
+    recursive: true,
+    force: true,
+  });
 }
 
-// Scan for all HTML files in the project
-const entrypoints = [...new Bun.Glob("**.html").scanSync("src")]
-  .map(a => path.resolve("src", a))
-  .filter(dir => !dir.includes("node_modules"));
+// Find HTML entrypoints
+const entrypoints = [...new Bun.Glob("**/*.html").scanSync("src")]
+  .map(file => path.resolve("src", file))
+  .filter(file => !file.includes("node_modules"));
 
-console.log(
-  `📄 Found ${entrypoints.length} HTML ${
-    entrypoints.length === 1 ? "file" : "files"
-  } to process\n`
-);
+console.log(`📄 Found ${entrypoints.length} HTML file(s)\n`);
 
 const start = performance.now();
 
 // BUILD
 const result = await build({
   entrypoints,
+
   outdir,
+
   plugins: [plugin],
 
-  // IMPORTANT FIX
+  target: "browser",
+
+  format: "esm",
+
+  splitting: false,
+
+  sourcemap: "external",
+
+  // IMPORTANT
   minify: false,
 
-  target: "browser",
-  sourcemap: "linked",
+  loader: {
+    ".js": "jsx",
+    ".ts": "ts",
+    ".tsx": "tsx",
+  },
 
   define: {
-    "process.env.NODE_ENV": JSON.stringify("production"),
+    "process.env.NODE_ENV": '"production"',
   },
+
+  external: [],
 
   ...cliConfig,
 });
 
-// Print results
+// Check build success
+if (!result.success) {
+  console.error("\n❌ Build failed\n");
+
+  for (const log of result.logs) {
+    console.error(log);
+  }
+
+  process.exit(1);
+}
+
+// Show outputs
 const end = performance.now();
 
 const outputTable = result.outputs.map(output => ({
