@@ -42,18 +42,14 @@ const toCamelCase = (str: string): string => {
 
 // Helper function to parse a value into appropriate type
 const parseValue = (value: string): any => {
-  // Handle true/false strings
   if (value === "true") return true;
   if (value === "false") return false;
 
-  // Handle numbers
   if (/^\d+$/.test(value)) return parseInt(value, 10);
   if (/^\d*\.\d+$/.test(value)) return parseFloat(value);
 
-  // Handle arrays (comma-separated)
   if (value.includes(",")) return value.split(",").map(v => v.trim());
 
-  // Default to string
   return value;
 };
 
@@ -66,21 +62,21 @@ function parseArgs(): Partial<BuildConfig> {
     const arg = args[i];
     if (!arg.startsWith("--")) continue;
 
-    // Handle --no-* flags
     if (arg.startsWith("--no-")) {
       const key = toCamelCase(arg.slice(5));
       config[key] = false;
       continue;
     }
 
-    // Handle --flag (boolean true)
-    if (!arg.includes("=") && (i === args.length - 1 || args[i + 1].startsWith("--"))) {
+    if (
+      !arg.includes("=") &&
+      (i === args.length - 1 || args[i + 1].startsWith("--"))
+    ) {
       const key = toCamelCase(arg.slice(2));
       config[key] = true;
       continue;
     }
 
-    // Handle --key=value or --key value
     let key: string;
     let value: string;
 
@@ -91,10 +87,8 @@ function parseArgs(): Partial<BuildConfig> {
       value = args[++i];
     }
 
-    // Convert kebab-case key to camelCase
     key = toCamelCase(key);
 
-    // Handle nested properties (e.g. --minify.whitespace)
     if (key.includes(".")) {
       const [parentKey, childKey] = key.split(".");
       config[parentKey] = config[parentKey] || {};
@@ -123,7 +117,7 @@ const formatFileSize = (bytes: number): string => {
 
 console.log("\n🚀 Starting build process...\n");
 
-// Parse CLI arguments with our magical parser
+// Parse CLI arguments
 const cliConfig = parseArgs();
 const outdir = cliConfig.outdir || path.join(process.cwd(), "dist");
 
@@ -132,38 +126,49 @@ if (existsSync(outdir)) {
   await rm(outdir, { recursive: true, force: true });
 }
 
-const start = performance.now();
-
 // Scan for all HTML files in the project
 const entrypoints = [...new Bun.Glob("**.html").scanSync("src")]
   .map(a => path.resolve("src", a))
   .filter(dir => !dir.includes("node_modules"));
-console.log(`📄 Found ${entrypoints.length} HTML ${entrypoints.length === 1 ? "file" : "files"} to process\n`);
 
-// Build all the HTML files
+console.log(
+  `📄 Found ${entrypoints.length} HTML ${
+    entrypoints.length === 1 ? "file" : "files"
+  } to process\n`
+);
+
+const start = performance.now();
+
+// BUILD
 const result = await build({
   entrypoints,
   outdir,
   plugins: [plugin],
-  minify: true,
+
+  // IMPORTANT FIX
+  minify: false,
+
   target: "browser",
   sourcemap: "linked",
+
   define: {
     "process.env.NODE_ENV": JSON.stringify("production"),
   },
-  ...cliConfig, // Merge in any CLI-provided options
+
+  ...cliConfig,
 });
 
-// Print the results
+// Print results
 const end = performance.now();
 
 const outputTable = result.outputs.map(output => ({
-  "File": path.relative(process.cwd(), output.path),
-  "Type": output.kind,
-  "Size": formatFileSize(output.size),
+  File: path.relative(process.cwd(), output.path),
+  Type: output.kind,
+  Size: formatFileSize(output.size),
 }));
 
 console.table(outputTable);
+
 const buildTime = (end - start).toFixed(2);
 
 console.log(`\n✅ Build completed in ${buildTime}ms\n`);
